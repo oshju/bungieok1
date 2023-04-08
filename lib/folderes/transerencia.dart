@@ -10,6 +10,7 @@ class Transferencia {
   final int itemReferenceHash;
   final int stackSize;
   final bool transferToVault;
+  final String? icon;
 
   Transferencia({
     required this.itemName,
@@ -18,6 +19,7 @@ class Transferencia {
     required this.membershipType,
     required this.itemReferenceHash,
     required this.stackSize,
+    required this.icon,
     this.transferToVault=true,
   });
 }
@@ -71,10 +73,16 @@ Future<List<Transferencia>> calltoapi() async {
 
     // Recorrer la lista completa de items en tu inventario
     for (var i = 0; i < unequippedItems.length; i++) {
+      print(unequippedItems[i]);
       // Obtener el hash y el id del item
       var itemHash = unequippedItems[i]['itemHash'].toString();
       var itemInstanceId = (unequippedItems[i]['itemInstanceId'].toString());
       var nombre = unequippedItems[i]['itemName'].toString();
+      String icon = 'https://www.bungie.net/${unequippedItems[i]['icon']}';
+      if (unequippedItems[i]['icon'] == null) {
+        icon = "https://www.bungie.net/common/destiny2_content/icons/7a1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b.png";
+        print('nulo');
+      }
       transferencias.add(Transferencia(
         itemName: itemHash,
         characterId: '2305843009260605642',
@@ -83,6 +91,7 @@ Future<List<Transferencia>> calltoapi() async {
         itemReferenceHash: int.parse(itemHash),
         stackSize: 1,
         transferToVault: true,
+        icon: icon,
       ));
       // Verificar si el item es un arma
       var itemType = unequippedItems[i]['itemType'].toString();
@@ -103,6 +112,7 @@ Future<List<Transferencia>> calltoapi() async {
       Map<String, dynamic> itemMap =
       jsonDecode(await itemResponse.stream.bytesToString());
       var itemName = itemMap['Response']['displayProperties']['name'];
+      var itemIcon = itemMap['Response']['displayProperties']['icon'].toString();
       transferencias.add(Transferencia(
         itemName: itemName,
         itemInstanceId: itemInstanceId,
@@ -111,6 +121,8 @@ Future<List<Transferencia>> calltoapi() async {
         itemReferenceHash: int.parse(itemHash),
         stackSize: 1,
         transferToVault: true,
+        icon: itemIcon,
+
       ));
     }
 

@@ -36,12 +36,14 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
               child: Text("${snapshot.error}"),
             );
           } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (BuildContext context, int index) {
-                Transferencia transferencia = snapshot.data![index];
-                return ListTile(
-                  title: Text(transferencia.itemName),
+            return GridView.count(
+              crossAxisCount: 2,
+              childAspectRatio: 1,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              padding: EdgeInsets.all(10),
+              children: snapshot.data!.map((transferencia) {
+                return GestureDetector(
                   onTap: () async {
                     String result = await transferItem(
                         transferencia,
@@ -55,8 +57,27 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(result)));
                   },
+                  child: Card(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Image.network(
+                            'https://www.bungie.net${transferencia.icon}',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            transferencia.itemName,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
-              },
+              }).toList(),
             );
           } else {
             return Center(
