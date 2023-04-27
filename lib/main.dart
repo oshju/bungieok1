@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:folderdocker/screens/animationes.dart';
+import 'package:folderdocker/screens/manifest.dart';
 import 'package:folderdocker/screens/segundapantalla.dart';
 import 'package:oauth2_client/oauth2_client.dart';
 import 'package:oauth2_client/spotify_oauth2_client.dart';
@@ -25,6 +27,7 @@ class hola extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       body: SafeArea(
         child: Center(
           child: Column(
@@ -78,6 +81,19 @@ class hola extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => TransferenciaScreen()),
                   );
                 },
+              ),
+
+              ElevatedButton(
+                child: Text('BungieManifestDownloader'),
+                onPressed: () {
+              Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Manifest(),
+              ),
+              );
+              },
+
+
               ),
 
               CarouselSlider(

@@ -29,7 +29,7 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
         decoration: BoxDecoration(
           image: DecorationImage(
             image: Image.network(
-                    'https://th.bing.com/th/id/OIP.BszFeHpWQrTyMTNSFOxLNwHaEo?pid=ImgDet&rs=1')
+                    'https://th.bing.com/th/id/R.ed07a00cdc182ac8b80b425726113ff2?rik=YekFTyQJWErntQ&pid=ImgRaw&r=0')
                 .image,
             fit: BoxFit.cover,
           ),
