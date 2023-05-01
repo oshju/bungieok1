@@ -60,9 +60,9 @@ class BungieManifest {
 
     try {
       // Realizar solicitud GET al endpoint del Manifest con un timeout de 30 segundos
-      final response = await _makeHttpRequest(
-          _manifestUrl, {'X-API-Key': _apiKey!}).timeout(
-          Duration(seconds: 3600));
+      final response =
+          await _makeHttpRequest(_manifestUrl, {'X-API-Key': _apiKey!})
+              .timeout(Duration(seconds: 3600));
 
       // Verificar que la solicitud fue exitosa
       if (response.statusCode != 200) {
@@ -82,7 +82,6 @@ class BungieManifest {
     }
   }
 
-
   static Future<String?> getMobileAssetPath1(String version) async {
     if (_contentPath == null) {
       await initializeBungieManifest(_apiKey!);
@@ -96,7 +95,6 @@ class BungieManifest {
     // Aquí asumimos que el valor "en" está dentro del primer elemento del arreglo de "mobileWorldContentPaths"
     String? mobileAssetContentPath = manifest?["en"];
 
-
     // Si mobileAssetContentPath sigue siendo nulo, es posible que el problema esté aquí
     if (mobileAssetContentPath == null) {
       print('No se pudo obtener la ruta del contenido móvil');
@@ -106,8 +104,9 @@ class BungieManifest {
     String contentUrl = 'https://www.bungie.net$mobileAssetContentPath';
 
     try {
-      final response = await http.get(Uri.parse(contentUrl)).timeout(
-          Duration(seconds: 36000));
+      final response = await http
+          .get(Uri.parse(contentUrl))
+          .timeout(Duration(seconds: 36000));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -115,76 +114,52 @@ class BungieManifest {
       }
 
       final dbDir = await getApplicationDocumentsDirectory();
-      final dbPath = dbDir.path + '/world_sql_content_23e679d4eb3ea63e606ca90354808bd6.content.db';
+      final dbPath = dbDir.path +
+          '/world_sql_content_23e679d4eb3ea63e606ca90354808bd6.content.db';
 
+      final file = File(dbPath);
+      await file.writeAsBytes(response.bodyBytes);
 
-// Abra la base de datos
-      final db = await openDatabase(dbPath);
+      // Abre la base de datos
+      final db = await openDatabase(dbPath, version: 1,
+          onCreate: (Database db, int version) async {
+        // Crea la tabla para almacenar los datos del manifiesto
+        await db.execute('''
+      CREATE TABLE ManifestData (
+        id TEXT PRIMARY KEY,
+        json TEXT
+      )
+    ''');
+      });
 
-// Ejecutar consulta
-      final rows = await db.query(
-          'DestinyInventoryItemDefinition',
-          columns: [
-            "json_extract(json, '\$.displayProperties.name') AS name",
-            "json_extract(json, '\$.displayProperties.description') AS description",
-            "json_extract(json, '\$.inventory.bucketTypeHash') AS bucketTypeHash",
-            "json_extract(json, '\$.stats.stats.*.displayProperties.name') AS statNames",
-            "json_extract(json, '\$.stats.stats.*.value') AS statValues"
-          ],
-          where: "json_extract(json, '\$.displayProperties.name') = ?",
-          whereArgs: ['The Last Word']
-      );
-
-      // Imprimir los resultados
-      if (rows.isNotEmpty) {
-        final row = rows.first;
-        print('Name: ${row['name']}');
-        print('Description: ${row['description']}');
-        print('Bucket type hash: ${row['bucketTypeHash']}');
-
-        String? statNames = row['statNames']?.toString();
-        List<String>?lista = statNames?.split(',');
-
-        String? statValues = row['statValues']?.toString();
-        List<String>?lista2 = statValues?.split(',');
-
-        //String statNames1 = row['&statNames']?.split(',');
-        //String statValues = row['statValues']?.split(',');
-
-        if (lista != null && lista2 != null &&
-            lista.length == lista2.length) {
-          for (int i = 0; i < lista.length; i++) {
-            String statName = lista[i];
-            String statValues = lista2[i];
-            print('${statNames![i]}: ${statValues[i]}');
-            // Realiza la operación deseada con statName y statValue
+      // Inserta los datos del manifiesto en la base de datos
+      if (manifest != null) {
+        await db.transaction((txn) async {
+          for (final entry in manifest.entries) {
+            final id = entry.key;
+            final json = jsonEncode(entry.value);
+            await txn.rawInsert(
+                'INSERT INTO ManifestData (id, json) VALUES (?, ?)',
+                [id, json]);
           }
-        } else {
-          print('No se encontraron resultados.');
-        }
-
-        // Cerrar la base de datos
-        await db.close();
+        });
       }
 
+      var hola = await db.rawQuery(
+          'SELECT json FROM DestinyInventoryItemDefinition WHERE json LIKE ?',
+          ['%"displayProperties":{"name":"The Last Word"}%']);
+      print(hola);
 
-
-
-
+      // Cierra la base de datos
+      await db.close();
     } on TimeoutException catch (e) {
       print('Error al descargar el Asset Content: $e');
       return null;
     } catch (e) {
-
       print('Error al descargar el Asset Content: $e');
       return null;
     }
-
   }
-
-
-
-
 
   static Future<Map<String, dynamic>?> getMobileWorldContentPaths() async {
     if (_worldContentPaths == null) {
@@ -194,7 +169,8 @@ class BungieManifest {
     final path = await getMobileAssetPath1('1.0.0');
     final pathString = path?.toString();
 
-    final langPath = pathString?.replaceAll('.content', '_$languageCode.content');
+    final langPath =
+        pathString?.replaceAll('.content', '_$languageCode.content');
     final worldContentUrl = '$_baseUrl$langPath';
 
     final response = await http.get(Uri.parse(worldContentUrl));
@@ -205,16 +181,17 @@ class BungieManifest {
       final archive = ZipDecoder().decodeBytes(bytes);
 
       // Buscar y decodificar el archivo json
-      final contentFile = archive.firstWhere((file) => file.name.endsWith('.json'));
+      final contentFile =
+          archive.firstWhere((file) => file.name.endsWith('.json'));
       final contentJson = contentFile.content as Uint8List;
       final contentString = utf8.decode(contentJson);
       final contentMap = json.decode(contentString);
       print(contentMap);
       print('realizado');
       return contentMap;
-
     } else {
-      throw Exception('Error al descargar el World Content: ${response.statusCode}');
+      throw Exception(
+          'Error al descargar el World Content: ${response.statusCode}');
     }
   }
 
@@ -229,7 +206,6 @@ class BungieManifest {
     String url = 'https://www.bungie.net$mobileAssetContentPath';
     return url;
   }
-
 
   static Future<http.Response> _makeHttpRequest(
       String url, Map<String, String> headers) async {
