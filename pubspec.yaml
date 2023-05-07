@@ -33,9 +33,12 @@ dependencies:
   dio: ^4.0.4
   carousel_slider: ^4.1.1
   shared_preferences: ^2.1.0
-  path_provider: ^2.0.14
+  path_provider: ^2.0.3
+  path_provider_windows: ^2.1.6
   archive: ^3.3.7
-  sqflite:
+  sqflite: ^2.0.0+3
+  sqlite3_flutter_libs: ^0.5.13
+  moor_flutter: ^4.1.0
   flutter:
     sdk: flutter
 

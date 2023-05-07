@@ -4,9 +4,14 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'dart:core';
+import 'package:path/path.dart';
+
+
 
 class Manifest extends StatefulWidget {
   @override
@@ -53,6 +58,7 @@ class BungieManifest {
   static String? _apiKey = '3028328cf7734aecb7217b2843daa5f0';
   static String? _contentPath;
   static Map<String, dynamic>? _worldContentPaths;
+  static const int _dbConnectionLimit = 1;
 
   static Future<Map<String, dynamic>?> initializeBungieManifest(
       String apiKey) async {
@@ -61,8 +67,8 @@ class BungieManifest {
     try {
       // Realizar solicitud GET al endpoint del Manifest con un timeout de 30 segundos
       final response =
-          await _makeHttpRequest(_manifestUrl, {'X-API-Key': _apiKey!})
-              .timeout(Duration(seconds: 3600));
+      await _makeHttpRequest(_manifestUrl, {'X-API-Key': _apiKey!})
+          .timeout(Duration(seconds: 3600));
 
       // Verificar que la solicitud fue exitosa
       if (response.statusCode != 200) {
@@ -103,34 +109,89 @@ class BungieManifest {
 
     String contentUrl = 'https://www.bungie.net$mobileAssetContentPath';
 
+
+    final response = await http
+        .get(Uri.parse(contentUrl))
+        .timeout(Duration(seconds: 36000));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Error al descargar el Asset Content: ${response.statusCode}');
+    }
+
+    final dbDir = await getApplicationDocumentsDirectory();
+    final dbPath = dbDir.path +
+        '/world_sql_content_23e679d4eb3ea63e606ca90354808bd6.sqlite3';
+
+    final file = File(dbPath);
+    await file.writeAsBytes(response.bodyBytes);
+
     try {
-      final response = await http
-          .get(Uri.parse(contentUrl))
-          .timeout(Duration(seconds: 36000));
-
-      if (response.statusCode != 200) {
-        throw Exception(
-            'Error al descargar el Asset Content: ${response.statusCode}');
-      }
-
-      final dbDir = await getApplicationDocumentsDirectory();
-      final dbPath = dbDir.path +
-          '/world_sql_content_23e679d4eb3ea63e606ca90354808bd6.content.db';
-
-      final file = File(dbPath);
-      await file.writeAsBytes(response.bodyBytes);
-
-      // Abre la base de datos
-      final db = await openDatabase(dbPath, version: 1,
+      final db = await openDatabase(dbPath, version: 2,
+          onOpen: (db) async {
+            await db.execute('PRAGMA journal_mode = WAL');
+          },
+          onConfigure: _onConfigure,
           onCreate: (Database db, int version) async {
-        // Crea la tabla para almacenar los datos del manifiesto
-        await db.execute('''
-      CREATE TABLE ManifestData (
-        id TEXT PRIMARY KEY,
-        json TEXT
-      )
-    ''');
-      });
+            try {
+              // Borra la base de datos si ya existe
+              await File(dbPath).delete();
+
+              // Resto del código...
+            } catch (e) {
+              print('Error al abrir la base de datos: $e');
+              return null;
+            } finally {
+              // Cierra la base de datos
+              await db.close();
+            }
+          });
+
+      try {
+              // Obtiene el archivo de la base de datos desde los assets
+              ByteData data = await rootBundle.load(join('assets', 'world_sql_content_23e679d4eb3ea63e606ca90354808bd6.content.db'));
+              List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+              // Escribe los bytes del archivo a la ubicación de la base de datos
+              await File(dbPath).writeAsBytes(bytes);
+
+              // Inserta los datos del manifiesto en la base de datos
+              if (manifest != null) {
+                await db.transaction((txn) async {
+                  for (final entry in manifest.entries) {
+                    final id = entry.key;
+                    final json = jsonEncode(entry.value);
+                    await txn.rawInsert(
+                        'INSERT INTO ManifestData (id, json) VALUES (?, ?)',
+                        [id, json]);
+                  }
+                });
+              }
+
+              var hola = await db.rawQuery(
+                  'SELECT json FROM DestinyInventoryItemDefinition WHERE json LIKE ?',
+                  ['%"displayProperties":{"name":"The Last Word"}%']);
+              print(hola);
+
+            } catch (e) {
+              print('Error al abrir la base de datos: $e');
+              return null;
+            } finally {
+              // Cierra la base de datos
+              await db.close();
+            }
+
+
+
+
+
+
+
+
+
+
+
+
 
       // Inserta los datos del manifiesto en la base de datos
       if (manifest != null) {
@@ -152,14 +213,17 @@ class BungieManifest {
 
       // Cierra la base de datos
       await db.close();
-    } on TimeoutException catch (e) {
-      print('Error al descargar el Asset Content: $e');
+    } on DatabaseException catch (e) {
+      print('Error al abrir la base de datos: $e');
+
       return null;
     } catch (e) {
-      print('Error al descargar el Asset Content: $e');
+      print('Error al interactuar con la base de datos: $e');
       return null;
     }
   }
+
+
 
   static Future<Map<String, dynamic>?> getMobileWorldContentPaths() async {
     if (_worldContentPaths == null) {
@@ -170,7 +234,7 @@ class BungieManifest {
     final pathString = path?.toString();
 
     final langPath =
-        pathString?.replaceAll('.content', '_$languageCode.content');
+    pathString?.replaceAll('.content', '_$languageCode.content');
     final worldContentUrl = '$_baseUrl$langPath';
 
     final response = await http.get(Uri.parse(worldContentUrl));
@@ -182,7 +246,7 @@ class BungieManifest {
 
       // Buscar y decodificar el archivo json
       final contentFile =
-          archive.firstWhere((file) => file.name.endsWith('.json'));
+      archive.firstWhere((file) => file.name.endsWith('.json'));
       final contentJson = contentFile.content as Uint8List;
       final contentString = utf8.decode(contentJson);
       final contentMap = json.decode(contentString);
@@ -220,21 +284,21 @@ class BungieManifest {
 // Obtener las rutas de los archivos que contienen las definiciones del contenido
     worldContentPaths = await BungieManifest.getMobileWorldContentPaths();
     final String? itemDefinitionPath =
-        worldContentPaths?['DestinyInventoryItemDefinition'];
+    worldContentPaths?['DestinyInventoryItemDefinition'];
 
 // Descargar el archivo de definiciones de contenido
     final String? itemDefinitionFilePath =
-        await BungieManifest.getMobileAssetPath1(itemDefinitionPath!);
+    await BungieManifest.getMobileAssetPath1(itemDefinitionPath!);
 
 // Cargar las definiciones de contenido desde el archivo descargado
     final String itemDefinitionFile =
-        File(itemDefinitionFilePath!).readAsStringSync();
+    File(itemDefinitionFilePath!).readAsStringSync();
     inventoryItemDefinitions = jsonDecode(itemDefinitionFile)['items'];
 
 // Buscar la entrada de la arma en las definiciones de contenido
     final int itemHash = 1403800851; // reemplazar con el hash único de la arma
     final Map<String, dynamic>? itemDefinition =
-        inventoryItemDefinitions![itemHash.toString()];
+    inventoryItemDefinitions![itemHash.toString()];
 
 // Obtener las estadísticas de la arma
     final List<dynamic>? stats = itemDefinition?['stats'];
@@ -242,11 +306,19 @@ class BungieManifest {
       for (final stat in stats) {
         final int statHash = stat['statHash'];
         final String statName = inventoryItemDefinitions![statHash.toString()]
-            ?['displayProperties']['name'];
+        ?['displayProperties']['name'];
         final int statValue = stat['value'];
         print('$statName: $statValue');
       }
     }
     return stats!;
+  }
+
+  static Future<void> _onConfigure(Database db) async {
+    await db.execute('PRAGMA journal_mode = WAL');
+    await db.execute('PRAGMA busy_timeout = 5000');
+    await db.execute('PRAGMA foreign_keys = ON');
+    // Aquí establecemos el límite de conexiones a la base de datos.
+    await db.execute('PRAGMA max_connections = $_dbConnectionLimit');
   }
 }
