@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:folderdocker/folderes/postmaster.dart';
 import 'package:folderdocker/screens/animationes.dart';
 import 'package:folderdocker/screens/manifest.dart';
 import 'package:folderdocker/screens/segundapantalla.dart';
@@ -79,6 +80,16 @@ class hola extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => TransferenciaScreen()),
+                  );
+                },
+              ),
+
+              ElevatedButton(
+                child: Text('Bungie postmaster'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => transferenciaWidget()),
                   );
                 },
               ),

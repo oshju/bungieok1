@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   oauth2_client: ^2.3.3
+  flutter_web_auth_2: ^2.1.4
   http: ^0.13.5
   dio: ^4.0.4
   carousel_slider: ^4.1.1

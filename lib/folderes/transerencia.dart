@@ -93,6 +93,7 @@ Future<List<Transferencia>> calltoapi() async {
         transferToVault: true,
         icon: icon,
       ));
+
       // Verificar si el item es un arma
       var itemType = unequippedItems[i]['itemType'].toString();
 
