@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:folderdocker/folderes/postmaster.dart';
+import 'package:folderdocker/folderes/vendors.dart';
 import 'package:folderdocker/screens/animationes.dart';
 import 'package:folderdocker/screens/manifest.dart';
 import 'package:folderdocker/screens/segundapantalla.dart';
@@ -16,116 +17,132 @@ import 'package:folderdocker/folderes/transerencia.dart';
 
 
 
-class hola extends StatelessWidget {
-  final List<String> images = [
-    'https://picsum.photos/250?image=9',
-    'https://picsum.photos/250?image=9',
-    'https://picsum.photos/250?image=9',
+import 'package:flutter/material.dart';
+
+class hola extends StatefulWidget {
+  @override
+  _holaState createState() => _holaState();
+}
+
+class _holaState extends State<hola> {
+  String? _selectedOption;
+
+  final List<String> _dropdownOptions = [
+    'Bungie transferencias',
+    'Bungie postmaster',
+    'Opción 3',
   ];
 
-
+  final List<String> _images = [
+    'https://media.game.es/COVERV2/3D_L/159/159317.png',
+    'https://static-00.iconduck.com/assets.00/destiny-icon-512x475-qi0g8ih3.png',
+    'https://picsum.photos/250?image=9',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      appBar: AppBar(
+        title: Text('Mi Aplicación'),
+        backgroundColor: Colors.blueGrey[900],
+        centerTitle: true,
+      ),
       body: SafeArea(
-        child: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              SizedBox(height: 20),
               Image.network(
                 'https://picsum.photos/250?image=9',
                 width: 250,
                 height: 250,
               ),
+              SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: _selectedOption,
+                items: _dropdownOptions.map((String option) {
+                  return DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(option),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedOption = newValue;
+                  });
+
+                },
+                decoration: InputDecoration(
+                  labelText: 'Selecciona una opción',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_selectedOption == 'Bungie transferencias') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => transferenciaWidget()));
+                } else if (_selectedOption == 'Bungie postmaster') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => TransferenciaScreen()));
+                } else if (_selectedOption == 'Opción 3') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => VendorsApp()));
+                }
+              },
+              child: Text('Navegar a la pantalla seleccionada'),
+            ),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
                   String? token = await getToken();
                   print(token);
                 },
-                child: Text('hola'),
+                child: Text('Obtener Token'),
               ),
-              ElevatedButton(
-                  onPressed: () async {
-                    final dio = Dio();
-                    dio.options.headers['x-api-key'] =
-                        '3028328cf7734aecb7217b2843daa5f0';
-                    dio.options.headers['Authorization'] =
-                        'Bearer ${await getToken()}';
-                    dio.options.headers['Content-Type'] = 'application/json';
-                    dio.options.headers['Cookie'] =
-                        'bungleanon=sv=BAAAAAA8IwAAAAAAAAtIIQAAAAAAYtxIAAAAAADeePDqSObZCEAAAACktJr93mkUhzaEbhqaYbIVvPUtq7i5pGiIqsLSjfrQjoo1bYngjlIU+47oq420u+ztQg9MWSQ9lMbW/gRXe/yW&cl=MC45MDIwLjIxODExMzE=; bungled=5905443050845129268; bungledid=BwFIvlwxiy9Jl6MoTFwf2yDeePDqSObZCAAA';
-
-                    try {
-                      final response = await dio.post(
-                        'https://www.bungie.net/Platform/Destiny2/Actions/Items/TransferItem/',
-                        data: {
-                          "itemReferenceHash": 1532276803,
-                          "itemId": "6917529851458378851",
-                          "stackSize": 1,
-                          "transferToVault": false,
-                          "characterId": "2305843009260605642",
-                          "membershipType": 1
-                        },
-                      );
-                      print(response.data);
-                    } catch (e) {
-                      print(e);
-                    }
-                  },
-                  child: Text('transfer to cazador')),
-              ElevatedButton(
-                child: Text('Bungie screen'),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => TransferenciaScreen()),
-                  );
-                },
-              ),
-
-              ElevatedButton(
-                child: Text('Bungie postmaster'),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => transferenciaWidget()),
-                  );
-                },
-              ),
-
-              ElevatedButton(
-                child: Text('BungieManifestDownloader'),
-                onPressed: () {
-              Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => Manifest(),
-              ),
-              );
-              },
-
-
-              ),
-
+              SizedBox(height: 20),
+              // Primer carrusel
               CarouselSlider(
-                items: [
-                  Image.network('https://via.placeholder.com/350x150'),
-                  Image.network('https://via.placeholder.com/350x150'),
-                  Image.network('https://via.placeholder.com/350x150'),
-                ],
+                items: _images.map((image) {
+                  return Image.network(image);
+                }).toList(),
                 options: CarouselOptions(
                   autoPlay: true,
                   aspectRatio: 16 / 9,
                   enlargeCenterPage: true,
                 ),
               ),
-              Flexible(
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: images.length,
-                      itemBuilder: (context, index) {
-                        return Image.network(images[index]);
-                      }))
+              SizedBox(height: 20),
+              // Segundo carrusel
+              CarouselSlider(
+                items: _images.map((image) {
+                  return Image.network(image);
+                }).toList(),
+                options: CarouselOptions(
+                  autoPlay: true,
+                  aspectRatio: 16 / 9,
+                  enlargeCenterPage: true,
+                ),
+              ),
+              SizedBox(height: 20),
+              // Widget Wrap para mostrar imágenes
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: _images.map((image) {
+                  return Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(image),
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  );
+                }).toList(),
+              ),
             ],
           ),
         ),
@@ -134,9 +151,14 @@ class hola extends StatelessWidget {
   }
 }
 
-main() {
+
+
+  main() {
+
+
   runApp(MaterialApp(
     home: hola(),
+
   ));
 }
 

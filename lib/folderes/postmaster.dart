@@ -6,6 +6,7 @@ import '../folderes/transerencia.dart';
 import '../main.dart';
 
 class transferenciaWidget extends StatefulWidget {
+
   @override
   _TransferenciaWidgetState createState() => _TransferenciaWidgetState();
 }
@@ -34,6 +35,13 @@ class Transferencia {
 
 class _TransferenciaWidgetState extends State<transferenciaWidget> {
   late Future<List<Transferencia>> _transferencias = Future.value([]);
+  List<dynamic> postmasterlist = [];
+  _TransferenciaWidgetState() {
+    postmaster(postmasterlist).then((nuevasTransferencias) {
+      postmasterlist = nuevasTransferencias;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,8 +187,8 @@ class _TransferenciaWidgetState extends State<transferenciaWidget> {
       });
 
       // Aquí debes llamar a la función postmaster
-      List<Transferencia> transferencias = postmaster(postmasterlist);
-      print('Número de transferencias: ${transferencias.length}'); // Agrega este mensaje de depuración
+      Future<List<Transferencia>> transferencias = postmaster(postmasterlist);
+      print('Número de transferencias: ${transferencias}'); // Agrega este mensaje de depuración
 
       return transferencias;
     } else {
@@ -191,7 +199,79 @@ class _TransferenciaWidgetState extends State<transferenciaWidget> {
 
   }
 
-  List<Transferencia> postmaster(List<dynamic> postmasterlist) {
+  Future<List> actualizarpostmster() async {
+    String? token = await getToken();
+    List<dynamic> characterEquipment = [];
+
+    // Realizar solicitud HTTP para obtener la lista de hashes
+    var request = await http.Request(
+      'GET',
+      Uri.parse(
+          'https://www.bungie.net/Platform/Destiny2/1/Profile/4611686018429892101/?components=100,102,103,104,200,201,202,204,205,300,301,302,303,304,305,306,307,308,309,310,700,800,900,1000,1100,1200,1400'),
+    );
+
+    request.headers.addAll({
+      'Authorization': 'Bearer ${token ?? ''}',
+      'X-API-Key': '3028328cf7734aecb7217b2843daa5f0',
+      'Content-Type': "application/json",
+    });
+
+    http.StreamedResponse response = await request.send().timeout(
+        const Duration(seconds: 20));
+    Map<String, dynamic>? userMap = jsonDecode(
+        await response.stream.bytesToString());
+    print(userMap?['Response']);
+    print(userMap?['Response']?['characterInventories']);
+    print('hola');
+    print(userMap?['Response']?['characterInventories']);
+    print(userMap?['Response']?['characterInventories'].runtimeType);
+
+    // Obtener la lista de armas equipadas
+    if (userMap?['Response'] != null &&
+        userMap?['Response']?['characterInventories'] != null) {
+
+      characterEquipment =
+          userMap?['Response']?['characterInventories']?['data']?['2305843009260605642']?['items'] ?? [];
+
+      print(characterEquipment);
+      List<dynamic> equippedItems = [];
+      List<dynamic> unequippedItems = [];
+      List<dynamic> postmasterlist = [];
+
+      characterEquipment.forEach((item) {
+        if (item?['isEquipped'] != true) {
+          print('entro');
+          equippedItems.add(item);
+          if (item.containsKey('bucketHash') && item['bucketHash'] == 215593132) {
+            print('entro en postmaster');
+            postmasterlist.add(item);
+          }
+        } else {
+          print('entro en armas no equipadas!');
+          unequippedItems.add(item);
+        }
+      });
+
+      // Aquí debes llamar a la función postmaster
+      Future<List<Transferencia>> transferencias = postmaster(postmasterlist);
+      print('Número de transferencias: ${transferencias}'); // Agrega este mensaje de depuración
+
+      return postmasterlist;
+    } else {
+      print('No se encontraron armas no equipadas');
+      return [];
+    }
+
+
+  }
+
+  List<Transferencia>erismorn(postmasterlist){
+    List <Transferencia> nuevo=[];
+    return nuevo;
+  }
+
+
+  Future<List<Transferencia>> postmaster(List<dynamic> postmasterlist) async{
     List<Transferencia> transferencias = [];
 
     // Agregar información de depuración
@@ -204,20 +284,28 @@ class _TransferenciaWidgetState extends State<transferenciaWidget> {
       var itemInstanceId = (postmasterlist[i]['itemInstanceId'].toString());
       var nombre = postmasterlist[i]['itemName'].toString();
       String icon = 'https://www.bungie.net/${postmasterlist[i]['icon']}';
-      if (postmasterlist[i]['icon'] == null) {
-        icon =
-        "https://www.bungie.net/common/destiny2_content/icons/7a1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b.png";
-        print('nulo');
-      }
+      var itemRequest = await http.Request(
+          'GET',
+          Uri.parse(
+              'https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/$itemHash'));
+
+      itemRequest.headers
+          .addAll({'X-API-Key': '3028328cf7734aecb7217b2843daa5f0'});
+      http.StreamedResponse itemResponse =
+          await itemRequest.send().timeout(const Duration(seconds: 20));
+      Map<String, dynamic> itemMap =
+      jsonDecode(await itemResponse.stream.bytesToString());
+    var itemName = itemMap['Response']['displayProperties']['name'];
+    var itemIcon = itemMap['Response']['displayProperties']['icon'].toString();
       var transferencia = Transferencia(
-        itemName: itemHash,
+        itemName: itemName,
         itemInstanceId: itemInstanceId,
         characterId: '2305843009260605642',
         membershipType: 1,
         itemReferenceHash: int.parse(itemHash),
         stackSize: 1,
         transferToVault: true,
-        icon: icon,
+        icon: itemIcon,
       );
 
       transferencias.add(transferencia);
@@ -230,6 +318,13 @@ class _TransferenciaWidgetState extends State<transferenciaWidget> {
 
 
 
+  // Future<void> _actualizarTransferencias() async {
+  //   List<Transferencia> nuevasTransferencias = await postmaster(postmasterlist);
+  //
+  //   setState(() {
+  //     _transferencias = nuevasTransferencias;
+  //   });
+  // }
 
 
 
@@ -270,10 +365,20 @@ class _TransferenciaWidgetState extends State<transferenciaWidget> {
     print(response.body);
 
     if (response.statusCode == 200) {
-      return "Transfer successful!"; // no se usa la cantidad de items para esta versión
+      // Llama a postmaster de manera asincrónica y espera su finalización
+      List<Transferencia> nuevasTransferencias = await postmaster(postmasterlist);
+
+      // Actualiza postmasterlist con las nuevas transferencias
+      postmasterlist = nuevasTransferencias;
+
+      setState(() {
+        _transferencias = Future.value(nuevasTransferencias);
+      });
+      return "tranferencia existosa";
     } else {
-      return "Transfer failed!";
+      return "Fallo en la transferencia.";
     }
+
   }
 
 
@@ -285,6 +390,8 @@ class _TransferenciaWidgetState extends State<transferenciaWidget> {
   @override
   void initState() {
     super.initState();
+
+    List<dynamic> postmasterlist = [];
     _transferencias = calltoapi()!;
 
   }
