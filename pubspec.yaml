@@ -28,6 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  oauth2: ^2.0.1
+  url_launcher: ^6.1.0
   oauth2_client: ^2.3.3
   flutter_web_auth_2: ^2.1.4
   http: ^0.13.5
@@ -40,6 +42,8 @@ dependencies:
   sqflite: ^2.0.0+3
   sqlite3_flutter_libs: ^0.5.13
   moor_flutter: ^4.1.0
+  appwrite: ^11.0.0
+  image_picker: ^0.8.3
   flutter:
     sdk: flutter
 
