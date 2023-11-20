@@ -92,6 +92,7 @@ Future<Map<dynamic, String>> subir(String textoIngresado) async {
     // Obtener el perfil del usuario
     await account.get();
     final profile = await account.get();
+    //hola
 
 // Extraer el nombre del perfil
     String nombreUsuario = profile.toString(); // Ajusta la clave según la estructura de tu perfil
