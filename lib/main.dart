@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:folderdocker/folderes/credentials.dart';
+import 'package:folderdocker/folderes/panmiercoles.dart';
 import 'package:folderdocker/folderes/postmaster.dart';
 import 'package:folderdocker/folderes/vendors.dart';
 import 'package:folderdocker/screens/animationes.dart';
@@ -102,7 +103,8 @@ class _holaState extends State<hola> {
                 }
                 else if(_selectedOption=='opcion 4'){
                   //Navigator.push(context, MaterialPageRoute(builder: (context) => MyHomePage()));
-                  subir();
+                  //subir();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => appwrite()));
                 }
               },
               child: Text('Navegar a la pantalla seleccionada'),

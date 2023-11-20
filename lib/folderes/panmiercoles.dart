@@ -1,18 +1,19 @@
+import 'package:appwrite/models.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 void main() {
-  runApp(MyHomePage());
+  runApp(appwrite());
 }
 
-class MyHomePage extends StatefulWidget {
+class appwrite extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<appwrite> {
   TextEditingController _textoController = TextEditingController();
 
   @override
@@ -36,7 +37,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 String textoIngresado = _textoController.text;
                 mostrarSnackBar(context, '¡Acción exitosa! Texto ingresado: $textoIngresado');
-                subir(textoIngresado); // Pasa el valor del texto a la función subir
+                 // Pasa el valor del texto a la función subir
+                ejemplo();
               },
               child: Text('Realizar Acción'),
             ),
@@ -129,3 +131,51 @@ Future<Map<dynamic, String>> subir(String textoIngresado) async {
     return {'status': 'error'};
   }
 }
+
+
+Future<void> ejemplo() async {
+  try {
+    final client = Client()
+        .setEndpoint('https://cloud.appwrite.io/v1')
+        .setProject('6550c358e8cde42e540e');
+
+    final account = Account(client);
+    final databases = Databases(client);
+    // Ejemplo: Obtener información del usuario
+    DocumentList userlist = await databases.listDocuments(
+      collectionId: '6550c68382b5408d115b',
+      databaseId: '6550c6665be761eef4d1',
+    );
+
+
+
+    print(userlist);
+    final String searchKey='oscar';
+    Query.search("title", searchKey!);
+    // Process the list of users
+    for (var user in userlist.documents) {
+      print('entro');
+      var userData = user.data;
+      print(userData);
+      // Aquí puedes acceder a las propiedades del documento 'user'
+    }
+
+
+
+  } catch (e) {
+    print('Error fetching users: $e');
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
