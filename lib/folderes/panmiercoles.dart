@@ -15,7 +15,7 @@ class appwrite extends StatefulWidget {
 
 class _MyHomePageState extends State<appwrite> {
   TextEditingController _textoController = TextEditingController();
-
+  TextEditingController _textoController1 = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,13 +32,21 @@ class _MyHomePageState extends State<appwrite> {
                 labelText: 'Ingrese un texto',
               ),
             ),
+            TextField(
+              controller: _textoController1,
+              decoration: InputDecoration(
+                labelText: 'Ingrese un correo',
+              ),
+            ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 String textoIngresado = _textoController.text;
+                String textoIngresado1=_textoController1.text;
                 mostrarSnackBar(context, '¡Acción exitosa! Texto ingresado: $textoIngresado');
                  // Pasa el valor del texto a la función subir
-                ejemplo();
+               await ejemplo();
+               await subir(textoIngresado,textoIngresado1);
               },
               child: Text('Realizar Acción'),
             ),
@@ -57,11 +65,7 @@ class _MyHomePageState extends State<appwrite> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void subir(String texto) {
-    // Aquí puedes utilizar el valor del texto como desees
-    print('Texto ingresado en subir: $texto');
-    // Llamar a tus funciones o realizar acciones necesarias con el texto
-  }
+
 
   @override
   void dispose() {
@@ -70,7 +74,7 @@ class _MyHomePageState extends State<appwrite> {
   }
 }
 
-Future<Map<dynamic, String>> subir(String textoIngresado) async {
+Future<Map<dynamic, String>> subir(String textoIngresado,String textoIngresado1) async {
   try {
     // Configurar el cliente Appwrite
     final client = Client()
@@ -80,14 +84,22 @@ Future<Map<dynamic, String>> subir(String textoIngresado) async {
 
     // Crear una cuenta y obtener una sesión
     final account = Account(client);
+    if(account.get()!=textoIngresado)
     await account.create(
       userId: textoIngresado,
-      email: 'me@appwrite.io',
+      email: textoIngresado1,
       password: 'password12',
       name: 'My Name',
     );
     //await account.createAnonymousSession();
-    await account.createEmailSession(email: 'me@appwrite.io', password: 'password12');
+    bool esVerdadero = true;
+    bool? metodo = await verificarUsuario(textoIngresado);
+    if(metodo== false){
+      await account.createEmailSession(email: textoIngresado1, password: 'password12');
+    }
+
+
+
 
     // Obtener el perfil del usuario
     await account.get();
@@ -167,6 +179,45 @@ Future<void> ejemplo() async {
     print('Error fetching users: $e');
   }
 }
+
+
+
+
+
+Future<bool?> verificarUsuario(String textoIngresado1) async {
+  try {
+    final client = Client()
+        .setEndpoint('https://cloud.appwrite.io/v1') // Reemplaza con tu URL de Appwrite
+        .setProject('6550c358e8cde42e540e'); // Reemplaza con tu ID de proyecto
+
+    final account = Account(client);
+
+    // Obtener la lista de identidades
+    final identidades = await account.listIdentities();
+
+    // Verificar si el usuario con el correo específico ya existe
+    bool usuarioExiste = identidades.identities.any((identidad) => identidad.providerEmail == textoIngresado1);
+
+    if (usuarioExiste) {
+      print('El usuario con el correo $textoIngresado1 ya existe.');
+      return true;
+    } else {
+      print('El usuario con el correo $textoIngresado1 no existe.');
+      return false;
+    }
+
+  } catch (e) {
+    print('Error al verificar usuario: $e');
+    return null;
+  }
+}
+
+
+
+
+
+
+
 
 
 
