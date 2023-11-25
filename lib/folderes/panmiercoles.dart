@@ -1,4 +1,5 @@
 import 'package:appwrite/models.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/foundation.dart';
@@ -10,51 +11,154 @@ void main() {
 
 class appwrite extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _AppwriteAppState createState() => _AppwriteAppState();
 }
 
-class _MyHomePageState extends State<appwrite> {
+class _AppwriteAppState extends State<appwrite> {
   TextEditingController _textoController = TextEditingController();
   TextEditingController _textoController1 = TextEditingController();
+  List<String> items = ['https://e00-elmundo.uecdn.es/assets/multimedia/imagenes/2021/08/09/16285263423187.jpg', 'https://i.blogs.es/adc42f/invasion/1366_2000.jpeg', 'Item 3'];
+  List<String> items2 = ['https://sm.ign.com/ign_es/screenshot/default/mario-critica_a8nu.jpg', 'https://media.vandalsports.com/i/640x360/7-2023/202372492559_1.jpg', 'Item 3'];
+  List<String> items3 = ['https://phantom-marca.unidadeditorial.es/fe5d6a51abd88257e4f858b87d9430b8/resize/828/f/jpg/assets/multimedia/imagenes/2023/04/24/16823273948259.jpg', 'https://imagenes.20minutos.es/files/og_thumbnail_1900/uploads/imagenes/2021/06/17/scarlett-johansson-como-viuda-negra.jpeg', 'https://image.europafm.com/clipping/cmsimages01/2021/07/30/251DC050-0EF8-4D77-AFD1-AC364A3F7960/98.jpg?crop=1400,788,x0,y0&width=1900&height=1069&optimize=low&format=webply'];
+  List<String> items4 = ['Item 1', 'Item 2', 'Item 3'];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('SnackBar Example'),
+        title: Text('Appwrite App'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _textoController,
-              decoration: InputDecoration(
-                labelText: 'Ingrese un texto',
+      body: ListView(
+        children: [
+          TextField(
+            controller: _textoController,
+            decoration: InputDecoration(
+              labelText: 'Ingrese un texto',
+            ),
+          ),
+          TextField(
+            controller: _textoController1,
+            decoration: InputDecoration(
+              labelText: 'Ingrese un correo',
+            ),
+          ),
+          _buildTextField(controller: _textoController1, labelText: "hola"),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () async {
+              String textoIngresado = _textoController.text;
+              String textoIngresado1 = _textoController1.text;
+              mostrarSnackBar(context,
+                  '¡Acción exitosa! Texto ingresado: $textoIngresado');
+              await ejemplo();
+              await subir(textoIngresado, textoIngresado1);
+
+              // Agregar más elementos a las listas
+              setState(() {
+                items.add('Nuevo Item ${items.length + 1}');
+                items2.add('Nuevo Item ${items2.length + 1}');
+                items3.add('Nuevo Item ${items3.length + 1}');
+                items4.add('Nuevo Item ${items4.length + 1}');
+              });
+            },
+            child: Text('Realizar Acción'),
+          ),
+          SizedBox(height: 16),
+          // Carrusel 1
+          _buildCarousel(items),
+          Align(
+            alignment: Alignment.topLeft,
+            child: Text(
+              'Series',
+              style: TextStyle(
+                fontSize: 22.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+                fontFamily: 'TuFuente',
               ),
             ),
-            TextField(
-              controller: _textoController1,
-              decoration: InputDecoration(
-                labelText: 'Ingrese un correo',
-              ),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                String textoIngresado = _textoController.text;
-                String textoIngresado1=_textoController1.text;
-                mostrarSnackBar(context, '¡Acción exitosa! Texto ingresado: $textoIngresado');
-                 // Pasa el valor del texto a la función subir
-               await ejemplo();
-               await subir(textoIngresado,textoIngresado1);
-              },
-              child: Text('Realizar Acción'),
-            ),
-          ],
+          ),
+          SizedBox(height: 16), // Ajusta el espacio entre carruseles
+          // Carrusel 2
+          _buildCarousel(items2),
+          SizedBox(height: 16), // Ajusta el espacio entre carruseles
+          // Carrusel 3
+          _buildCarousel(items3),
+          SizedBox(height: 16), // Ajusta el espacio entre carruseles
+          // Carrusel 4
+          _buildCarousel(items4),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String labelText,
+  }) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(
+          fontSize: 18,
+          color: Colors.blue,
+          fontWeight: FontWeight.bold,
+        ),
+        decoration: InputDecoration(
+          labelText: labelText,
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          labelStyle: TextStyle(
+            fontSize: 18,
+            color: Colors.blue,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildCarousel(List<String> items) {
+    return CarouselSlider.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index, realIndex) {
+        return Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          height: 120,
+          margin: EdgeInsets.only(right: 10.0), // Ajusta el espacio entre imágenes
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10.0),
+            child: Image.network(
+              items[index],
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      },
+      options: CarouselOptions(
+        height: 200,
+        autoPlay: true,
+        aspectRatio: 16 / 9,
+        enlargeCenterPage: true,
+        autoPlayCurve: Curves.fastOutSlowIn,
+        enableInfiniteScroll: true,
+        autoPlayAnimationDuration: Duration(milliseconds: 800),
+        viewportFraction: 0.8,
+      ),
+    );
+  }
+
+
+
+
+
+
+
 
   void mostrarSnackBar(BuildContext context, String mensaje) {
     final snackBar = SnackBar(
@@ -65,14 +169,14 @@ class _MyHomePageState extends State<appwrite> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-
-
   @override
   void dispose() {
     _textoController.dispose();
+    _textoController1.dispose();
     super.dispose();
   }
 }
+
 
 Future<Map<dynamic, String>> subir(String textoIngresado,String textoIngresado1) async {
   try {
