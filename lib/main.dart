@@ -7,8 +7,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:folderdocker/folderes/credentials.dart';
+import 'package:folderdocker/folderes/google.dart';
 import 'package:folderdocker/folderes/panmiercoles.dart';
 import 'package:folderdocker/folderes/postmaster.dart';
+import 'package:folderdocker/folderes/vendors.dart';
 import 'package:folderdocker/folderes/vendors.dart';
 import 'package:folderdocker/screens/animationes.dart';
 import 'package:folderdocker/screens/manifest.dart';
@@ -43,7 +45,8 @@ class _holaState extends State<hola> {
     'Bungie transferencias',
     'Bungie postmaster',
     'Opción 3',
-    'opcion 4',
+    'Opcion 4',
+    'Opcion 5'
   ];
 
   final List<String> _images = [
@@ -106,7 +109,12 @@ class _holaState extends State<hola> {
                   //subir();
                   Navigator.push(context, MaterialPageRoute(builder: (context) => appwrite()));
                 }
+                else if (_selectedOption == 'Opcion 5') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CredenScreen()));
+                }
+
               },
+
               child: Text('Navegar a la pantalla seleccionada'),
             ),
               SizedBox(height: 20),
@@ -400,7 +408,7 @@ Future<Map<dynamic, String>> subir() async {
     print(response); // Archivo subido con éxito!
 
     return {'status': 'success'};
-    
+
   } catch (e) {
     print('Error: $e');
     return {'status': 'error'};

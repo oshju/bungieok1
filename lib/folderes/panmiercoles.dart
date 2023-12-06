@@ -19,7 +19,8 @@ class _AppwriteAppState extends State<appwrite> {
   TextEditingController _textoController1 = TextEditingController();
   List<String> items = ['https://e00-elmundo.uecdn.es/assets/multimedia/imagenes/2021/08/09/16285263423187.jpg', 'https://i.blogs.es/adc42f/invasion/1366_2000.jpeg', 'Item 3'];
   List<String> items2 = ['https://sm.ign.com/ign_es/screenshot/default/mario-critica_a8nu.jpg', 'https://media.vandalsports.com/i/640x360/7-2023/202372492559_1.jpg', 'Item 3'];
-  List<String> items3 = ['https://phantom-marca.unidadeditorial.es/fe5d6a51abd88257e4f858b87d9430b8/resize/828/f/jpg/assets/multimedia/imagenes/2023/04/24/16823273948259.jpg', 'https://imagenes.20minutos.es/files/og_thumbnail_1900/uploads/imagenes/2021/06/17/scarlett-johansson-como-viuda-negra.jpeg', 'https://image.europafm.com/clipping/cmsimages01/2021/07/30/251DC050-0EF8-4D77-AFD1-AC364A3F7960/98.jpg?crop=1400,788,x0,y0&width=1900&height=1069&optimize=low&format=webply'];
+  List<String> items3 = ['https://phantom-marca.unidadeditorial.es/fe5d6a51abd88257e4f858b87d9430b8/resize/828/f/jpg/assets/multimedia/imagenes/2023/04/24/16823273948259.jpg', 'https://imagenes.20minutos.es/files/og_thumbnail_1900/uploads/imagenes/2021/06/17/scarlett-johansson-como-viuda-negra.jpeg',
+    'https://image.europafm.com/clipping/cmsimages01/2021/07/30/251DC050-0EF8-4D77-AFD1-AC364A3F7960/98.jpg?crop=1400,788,x0,y0&width=1900&height=1069&optimize=low&format=webply'];
   List<String> items4 = ['Item 1', 'Item 2', 'Item 3'];
 
   @override
