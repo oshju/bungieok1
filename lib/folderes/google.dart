@@ -84,7 +84,7 @@ class _CredenScreenState extends State<CredenScreen> {
         Token: ${client.credentials.accessToken}
       ''';
 
-
+//hola
       setState(() {
         clientInfo = clientInfoString;
       });
